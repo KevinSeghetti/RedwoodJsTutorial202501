@@ -13,6 +13,7 @@ import {
   SubmitHandler,
 } from '@redwoodjs/forms'
 import { Metadata, useMutation } from '@redwoodjs/web'
+import { toast, Toaster } from '@redwoodjs/web/toast'
 
 const CREATE_CONTACT = gql`
   mutation CreateContactMutation($input: CreateContactInput!) {
@@ -29,20 +30,23 @@ interface FormValues {
 }
 
 const ContactPage = () => {
-  const [create] = useMutation<
+  const [create, { loading, error }] = useMutation<
     CreateContactMutation,
     CreateContactMutationVariables
-  >(CREATE_CONTACT)
+  >(CREATE_CONTACT, {
+    onCompleted: () => {
+      toast.success('Thank you for your submission!')
+    },
+  })
 
   const onSubmit: SubmitHandler<FormValues> = (data) => {
-    console.log(data)
     create({ variables: { input: data } })
   }
 
   return (
     <>
       <Metadata title="Contact" description="Contact page" />
-
+      <Toaster />
       <Form onSubmit={onSubmit} config={{ mode: 'onBlur' }}>
         <Label name="name" errorClassName="error">
           Name
@@ -53,6 +57,7 @@ const ContactPage = () => {
           errorClassName="error"
         />
         <FieldError name="name" className="error" />
+
         <Label name="email" errorClassName="error">
           Email
         </Label>
@@ -68,6 +73,7 @@ const ContactPage = () => {
           errorClassName="error"
         />
         <FieldError name="email" className="error" />
+
         <Label name="message" errorClassName="error">
           Message
         </Label>
@@ -77,7 +83,8 @@ const ContactPage = () => {
           errorClassName="error"
         />
         <FieldError name="message" className="error" />
-        <Submit>Save</Submit>
+
+        <Submit disabled={loading}>Save</Submit>
       </Form>
     </>
   )
